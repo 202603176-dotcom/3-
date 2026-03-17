@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Introduction</title>
+    <!-- Google Fonts for a modern look -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --bg-color: #f9fafb;
+            --card-bg: #ffffff;
+            --text-main: #111827;
+            --text-sub: #6b7280;
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.5;
+            padding: 4rem 1rem;
+        }
+
+        .header {
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto 4rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            letter-spacing: -0.025em;
+        }
+
+        .header p {
+            font-size: 1.125rem;
+            color: var(--text-sub);
+        }
+
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .member-card {
+            background: var(--card-bg);
+            border-radius: 1rem;
+            padding: 2.5rem 1.5rem;
+            text-align: center;
+            box-shadow: var(--shadow);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .member-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .avatar-wrapper {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin-bottom: 1.5rem;
+        }
+
+        .avatar-container {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #e0e7ff 0%, #ede9fe 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+            transition: opacity 0.3s ease;
+            z-index: 1;
+        }
+
+        .character-img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 2;
+            border: 3px solid white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .member-card:hover .character-img.loaded {
+            opacity: 1;
+        }
+        .member-card:hover .avatar-container {
+            opacity: 0.3;
+        }
+
+        .loader {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 30px;
+            height: 30px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: none;
+            z-index: 3;
+        }
+
+        @keyframes spin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        .member-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .member-role {
+            font-size: 0.875rem;
+            color: var(--primary-color);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1.25rem;
+        }
+
+        .member-bio {
+            font-size: 0.95rem;
+            color: var(--text-sub);
+            margin-bottom: 1.5rem;
+            flex-grow: 1;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 1rem;
+        }
+
+        .modal-content {
+            background: white;
+            width: 100%;
+            max-width: 450px;
+            border-radius: 1.5rem;
+            padding: 2.5rem;
+            position: relative;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            text-align: center;
+            animation: modalFadeIn 0.3s ease-out;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 1.25rem;
+            right: 1.25rem;
+            background: #f3f4f6;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-sub);
+        }
+
+        .modal-info-list {
+            margin-top: 2rem;
+            text-align: left;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: var(--text-sub);
+            font-size: 0.9rem;
+        }
+
+        .info-value {
+            color: var(--text-main);
+            font-weight: 500;
+        }
+
+        @media (max-width: 640px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <h1>우리의 멋진 팀원들</h1>
+        <p>프로필 카드를 클릭하여 상세 정보를 확인해보세요.</p>
+    </header>
+
+    <div class="team-grid" id="teamGrid">
+        <!-- Members will be rendered here for easier data management -->
+    </div>
+
+    <!-- Modal Structure -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal()">&times;</button>
+            <div id="modalAvatar" style="font-size: 4rem; margin-bottom: 1rem;"></div>
+            <h2 id="modalName" style="font-size: 1.5rem; font-weight: 800; margin-bottom: 0.25rem;"></h2>
+            <p id="modalRole" style="color: var(--primary-color); font-weight: 600; font-size: 0.9rem; margin-bottom: 1.5rem;"></p>
+            
+            <div class="modal-info-list">
+                <div class="info-item">
+                    <span class="info-label">나이</span>
+                    <span class="info-value" id="infoAge"></span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">카카오톡 ID</span>
+                    <span class="info-value" id="infoKakao"></span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">인스타그램</span>
+                    <span class="info-value" id="infoInsta"></span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">이메일</span>
+                    <span class="info-value" id="infoEmail"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const apiKey = ""; 
+
+        // 팀원 데이터 관리
+        const teamData = [
+            { id: 1, name: '김철수', role: 'Lead Developer', emoji: '👨‍💻', bio: '안정적이고 확장 가능한 아키텍처를 설계하며, 새로운 기술 스택 도입을 즐깁니다.', age: 29, kakao: 'chulsoo_dev', insta: '@chulsoo_k', email: 'chulsoo@example.com', prompt: 'A cool male developer character, 3D Pixar style, wearing glasses and a hoodie, blue theme' },
+            { id: 2, name: '이영희', role: 'UI/UX Designer', emoji: '🎨', bio: '사용자의 행동을 분석하여 심미적으로 아름답고 편리한 경험을 디자인합니다.', age: 26, kakao: 'yh_design', insta: '@younghee_art', email: 'younghee@example.com', prompt: 'A creative female designer character, 3D Pixar style, holding a stylus, artistic aesthetic' },
+            { id: 3, name: '박지민', role: 'Product Manager', emoji: '🚀', bio: '제품의 방향성을 설정하고 팀원 간의 원활한 커뮤니케이션을 지원합니다.', age: 31, kakao: 'jimin_pm', insta: '@jimin_park', email: 'jimin@example.com', prompt: 'A professional male manager character, 3D Pixar style, confident smile, business casual' },
+            { id: 4, name: '최다은', role: 'Content Strategist', emoji: '📝', bio: '브랜드의 스토리를 매력적인 콘텐츠로 풀어내어 대중과 소통합니다.', age: 27, kakao: 'daeun_writer', insta: '@daeun_story', email: 'daeun@example.com', prompt: 'A bright female content creator character, 3D Pixar style, holding a camera, cheerful vibe' },
+            { id: 5, name: '정우진', role: 'Data Analyst', emoji: '📊', bio: '복잡한 데이터 속에서 비즈니스 인사이트를 발견하고 의사결정을 돕습니다.', age: 28, kakao: 'woojin_data', insta: '@woojin_j', email: 'woojin@example.com', prompt: 'A smart male data scientist character, 3D Pixar style, surrounded by floating holographic charts' },
+            { id: 6, name: 'AI 공학개론', role: 'Core Topic', emoji: '🤖', bio: '인공지능의 기초부터 실제 적용까지, 미래를 설계하는 핵심 기술과 원리를 함께 탐구합니다.', age: 'N/A', kakao: 'ai_intro_bot', insta: '@ai_engineering', email: 'ai@university.ac.kr', prompt: 'A futuristic robot character, 3D Pixar style, learning from books, glowing circuits, friendly expression' }
+        ];
+
+        // 팀원 카드 렌더링
+        const grid = document.getElementById('teamGrid');
+        teamData.forEach(member => {
+            const card = document.createElement('article');
+            card.className = 'member-card';
+            card.onclick = () => openModal(member);
+            card.onmouseenter = () => generateCharacter(card, member.prompt);
+            
+            card.innerHTML = `
+                <div class="avatar-wrapper">
+                    <div class="avatar-container">${member.emoji}</div>
+                    <div class="loader"></div>
+                    <img class="character-img" alt="Character">
+                </div>
+                <h2 class="member-name">${member.name}</h2>
+                <p class="member-role">${member.role}</p>
+                <p class="member-bio">${member.bio}</p>
+            `;
+            grid.appendChild(card);
+        });
+
+        // 모달 제어
+        const modal = document.getElementById('modalOverlay');
+        function openModal(member) {
+            document.getElementById('modalAvatar').innerText = member.emoji;
+            document.getElementById('modalName').innerText = member.name;
+            document.getElementById('modalRole').innerText = member.role;
+            document.getElementById('infoAge').innerText = member.age;
+            document.getElementById('infoKakao').innerText = member.kakao;
+            document.getElementById('infoInsta').innerText = member.insta;
+            document.getElementById('infoEmail').innerText = member.email;
+            
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            modal.style.display = 'none';
+        }
+
+        // 창 바깥 클릭 시 닫기
+        window.onclick = (event) => {
+            if (event.target === modal) closeModal();
+        };
+
+        // 이미지 생성 로직
+        async function generateCharacter(cardElement, promptText) {
+            const imgElement = cardElement.querySelector('.character-img');
+            const loader = cardElement.querySelector('.loader');
+
+            if (imgElement.classList.contains('loaded') || loader.style.display === 'block') return;
+
+            loader.style.display = 'block';
+
+            let retries = 0;
+            const maxRetries = 5;
+            
+            async function attemptGenerate() {
+                try {
+                    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            instances: [{ prompt: promptText }],
+                            parameters: { sampleCount: 1 }
+                        })
+                    });
+
+                    if (!response.ok) throw new Error('Generation failed');
+
+                    const result = await response.json();
+                    const base64Data = result.predictions[0].bytesBase64Encoded;
+                    
+                    imgElement.src = `data:image/png;base64,${base64Data}`;
+                    imgElement.onload = () => {
+                        imgElement.classList.add('loaded');
+                        loader.style.display = 'none';
+                    };
+
+                } catch (error) {
+                    if (retries < maxRetries) {
+                        const delay = Math.pow(2, retries) * 1000;
+                        retries++;
+                        setTimeout(attemptGenerate, delay);
+                    } else {
+                        loader.style.display = 'none';
+                        console.error('Final attempt failed:', error);
+                    }
+                }
+            }
+
+            attemptGenerate();
+        }
+    </script>
+</body>
+</html>
